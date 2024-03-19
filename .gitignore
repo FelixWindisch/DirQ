@@ -1,0 +1,16 @@
+*.aux
+*.log
+*.bbl
+*.out
+*.run.xml
+*.auxlock
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.d
+*.o
+*.so
+*.rlib
+*.rmeta
+MCMC_sampling_of_directed_flag_complexes.pdf

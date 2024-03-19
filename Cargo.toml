@@ -1,0 +1,28 @@
+[package]
+name = "directed_q"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "dir_q_lib"
+path = "src/lib.rs"
+
+[dependencies]
+pyo3 = { version = "0.20.0", features = ["extension-module"] }
+numpy = "0.20"
+libc = {version = "0.2.153"}
+rand = { version = "*", features = ["serde1"] }
+rayon = "*"
+indexmap = {version = "*", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+crossbeam="0.8.2"
+bitvec = "1"
+array_tool = {version = "1.0.3"}
+itertools = {version = "0.12.1"}
+clap = { version = "3.0.8", features = ["derive"] }
+
+
+[profile.release]
+debug = true
