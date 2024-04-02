@@ -57,7 +57,8 @@ pub fn get_directed_flag_complex<G: DirectedGraph + Sync + ?Sized>(graph: &G, _i
 
 pub fn get_simplex_map(flag_complex: &Vec<Vec<Simplex>>, q:usize) -> HashMap<Simplex, Node>
 {
-    let simplicial_family: Vec<Vec<Node>> = flag_complex.clone().into_iter().flatten().filter(|simplex: &Vec<Node>|{simplex.len() > q as usize}).collect();
+    //.filter(|simplex: &Vec<Node>|{simplex.len() > q as usize})
+    let simplicial_family: Vec<Vec<Node>> = flag_complex.clone().into_iter().flatten().collect();
     let mut simplex_map : HashMap<Simplex, Node> = HashMap::new();
     for (index, simplex) in enumerate(&simplicial_family)
     {

@@ -85,6 +85,25 @@ pub fn local_cofaces<G:DirectedGraph + DirectedGraphNew + AdjacencyMatrixGraph>
     return result;
 }
 
+
+
+/// On input of simplex and index, returns cof_index(simplex) as a vector of simplex IDs.
+pub fn local_cofaces_full<G:DirectedGraph + DirectedGraphNew + AdjacencyMatrixGraph>
+(
+    g: &G, simplex: &Simplex, index: usize
+) -> Vec<Simplex> 
+{
+    let co_b: Vec<Node> = local_coboundaries(g, simplex, index);
+    let mut result: Vec<Simplex> = Vec::new();
+    for co_boundary_vertex in co_b
+    {
+        let mut clone = simplex.clone();
+        clone.insert(index, co_boundary_vertex);
+        result.push(clone);
+    }
+    return result;
+}
+
 /// Returns the set of simplices that contain simplex as a vector of IDs
 pub fn get_super_simplices(g: &EdgeMapGraph, simplex: &Vec<Node>, simplex_map: &HashMap<Simplex, Node>, simplicial_family: &Vec<Simplex>)-> Vec<Node> 
 {
@@ -109,3 +128,58 @@ pub fn get_super_simplices(g: &EdgeMapGraph, simplex: &Vec<Node>, simplex_map: &
     result.into_iter().collect()
 }
 
+
+/// Returns the set of simplices that contain simplex as a vector of IDs
+pub fn get_super_simplices_full(g: &EdgeMapGraph, simplex: &Vec<Node>)-> Vec<Simplex> 
+{
+    let mut result:HashSet<Simplex> = HashSet::new();
+    result.insert(simplex.clone());
+    // Rust closures cannot do recursion, so this is slightly ugly
+    fn recurse(simplex: &Simplex, result: &mut HashSet<Simplex>, g: &EdgeMapGraph) 
+    {
+        for index in 0..simplex.len()+1
+        {
+
+            let cofaces = local_cofaces_full(g, &simplex,  index);
+            result.extend(cofaces.clone());
+            for coface in cofaces
+            {
+                //let coface = &simplicial_family[coface_id as usize];
+                recurse(&coface, result, g);
+            }
+        }    
+    }
+    recurse(simplex, &mut result, g);
+    result.into_iter().collect()
+}
+
+pub fn get_super_simplices_with_inclusion(g: &EdgeMapGraph, simplex: &Vec<Node>)-> (Vec<Simplex>, HashSet<(Simplex, Simplex)>) 
+{
+    let mut inclusions:HashSet<(Simplex, Simplex)> = HashSet::new();
+    let mut result:HashSet<Simplex> = HashSet::new();
+    result.insert(simplex.clone());
+    // Rust closures cannot do recursion, so this is slightly ugly
+    fn recurse(simplex: &Simplex, result: &mut HashSet<Simplex>, inclusions: &mut HashSet<(Simplex, Simplex)>,  mut path: Vec<Simplex>, g: &EdgeMapGraph) 
+    {
+        path.push((*simplex).clone());
+        for index in 0..simplex.len()+1
+        {
+
+            let cofaces = local_cofaces_full(g, &simplex,  index);
+            result.extend(cofaces.clone());
+            for coface in cofaces
+            {
+
+                for previous in path.clone()
+                {
+                    inclusions.insert((previous, coface.clone()));
+                } 
+                
+                //let coface = &simplicial_family[coface_id as usize];
+                recurse(&coface, result, inclusions, path.clone(), g);
+            }
+        }    
+    }
+    recurse(simplex, &mut result, &mut inclusions, Vec::new(), g);
+    (result.into_iter().collect(), inclusions)
+}

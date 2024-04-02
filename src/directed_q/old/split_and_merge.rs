@@ -20,9 +20,10 @@ pub fn get_q_digraph(
     simplex_map: &HashMap<Simplex, Node>
 ) -> EdgeListGraph
 {
+    let simplicial_family: Vec<Simplex> = flag_complex.clone().into_iter().flatten().collect();
     let (i_j_cofaces, (q_inclusions, inclusion_edges))
     = rayon::join(
-        ||{get_all_i_j_cofaces(  q,  i, j, &flag_complex, &simplex_map)},
+        ||{get_all_i_j_cofaces(  q,  i, j, flag_complex[0].len(), &simplex_map, &simplicial_family[..])},
         ||{get_inclusion_edges( q, i, j,   &flag_complex, &simplex_map)});
     let mut q_graph = get_q_near_graph( q, i, j,   flag_complex[0].len(), &i_j_cofaces, &q_inclusions);
 
@@ -37,16 +38,20 @@ pub fn get_q_digraph(
 
 
 
-/* pub fn get_all_i_j_cofaces
+pub fn get_all_i_j_cofaces
 (
-     i:usize, j:usize,  
+    q:usize, i:usize, j:usize,   
     number_q_simplices:usize, 
-    simplex_map: &HashMap<Simplex, Node>
+    simplex_map: &HashMap<Simplex, Node>,
+    simplices:&[Vec<Node>]
 ) -> Vec<(Vec<Node>, Vec<Node>)> 
 {
-    let enumerate = |mut result:  (Vec<(Vec<Node>, Vec<Node>)>, usize), simplices: Vec<&Vec<Node>>| -> (Vec<(Vec<Node>, Vec<Node>)>, usize) {
+    let enumerate  = |mut result:  (Vec<(Vec<Node>, Vec<Node>)>, usize), simplices: Vec<&Vec<Node>>| -> (Vec<(Vec<Node>, Vec<Node>)>, usize) 
+    {
         for simplex in simplices
         {
+            if simplex.len() > q+1 
+            {
             let mut i_boundary = simplex.clone();
             i_boundary.remove(i as usize);
 
@@ -59,9 +64,9 @@ pub fn get_q_digraph(
             result.0[i_q_simplex as usize].0.push(index);
             result.0[j_q_simplex as usize].1.push(index);
             result.1 += 1;
+            }
         }
         result
-
     };
 
     let combine = |right:  (Vec<(Vec<Node>, Vec<Node>)>, usize), left :  (Vec<(Vec<Node>, Vec<Node>)>, usize)| -> (Vec<(Vec<Node>, Vec<Node>)>, usize)
@@ -87,12 +92,11 @@ pub fn get_q_digraph(
         }
         (bigger, left.1 + right.1)
     };
-    let simplices = simplex_map.keys().collect::<Vec<_>>();
     simplices.par_iter().chunks(CHUNKSIZE).fold( ||(vec![(Vec::new(), Vec::new()); simplex_map.len()], 0), enumerate)
     .reduce(|| (vec![(Vec::new(), Vec::new()); number_q_simplices], 0), combine).0
-} */
+} 
 
-pub fn get_all_i_j_cofaces
+pub fn get_all_i_j_cofaces_alt
 (
     q:usize, i:usize, j:usize,  
     _flag_complex: &Vec<Vec<Simplex>>, 

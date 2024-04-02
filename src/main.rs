@@ -58,7 +58,7 @@ struct Args{
     label: String,
 
     /// parallelization method
-    #[clap(short, long, possible_values=&["none", "mutex", "split_and_merge", "local_cofaces", "naive"], default_value="local_cofaces")]
+    #[clap(short, long, possible_values=&["none", "mutex", "split_and_merge", "local_cofaces", "bottom_up", "naive"], default_value="bottom_up")]
     parallelization: String,
 
     #[clap(short, long, possible_values=&["false", "true", "full"], default_value="false")]
@@ -91,15 +91,33 @@ fn main() {
     {
         benchmark(g, q, i, j, bm);
         return;
-    }   
+    } 
+    if par == "bottom_up"
+    {
+        if definition == "old"
+        {
+            let result = directed_q::old::bottom_up::get_q_digraph(&g, q, i, j);
+            dbg!(result.len());
+        }
+        else
+        {
+            let result = directed_q::new::bottom_up::get_q_digraph(&g, q, i, j);
+            dbg!(result.len());
+        }
+            
+        
+        return;
+    }
+
     let flag_complex = complex::get_directed_flag_complex(&g, i, j, q);
     let simplex_map = complex::get_simplex_map(&flag_complex, q);
     dbg!("Flag complex computed");
-    assert!(flag_complex.len() > q+1);
+    assert!(flag_complex.len() > 1);
     if flag_complex[q+1].len() == 0
     {
         panic!("There are no q+1 simplices in the graph");
     }
+    
 
     let q:EdgeListGraph = match  definition.as_str() 
     {
@@ -120,7 +138,7 @@ fn main() {
             {
                 "naive" => {directed_q::old::naive::get_q_digraph(g, q, i, j, &flag_complex)}
                 "mutex" => {directed_q::old::mutex::get_q_digraph( q, i, j, &flag_complex, &simplex_map)}
-                //"split_and_merge" => {directed_q::old::split_and_merge::get_q_digraph( q, i, j, &flag_complex, &simplex_map)}
+                "split_and_merge" => {directed_q::old::split_and_merge::get_q_digraph( q, i, j, &flag_complex, &simplex_map)}
                 "local_cofaces" => {directed_q::old::local_cofaces::get_q_digraph( &g, q, i, j, &flag_complex, &simplex_map)}
                 _ => {directed_q::old::single_thread::get_q_digraph( q, i, j, &flag_complex,  &simplex_map)}
             }
@@ -165,7 +183,7 @@ fn benchmark(g: EdgeMapGraph, q:usize, i:usize, j:usize, mode: String)
     }
 
     let now = Instant::now();
-    directed_q::new::local_cofaces::get_q_digraph(& g, q, i, j, &flag_complex, &simplex_map);
+    directed_q::new::bottom_up::get_q_digraph(& g, q, i, j);
     let elapsed = now.elapsed();
     println!("Bottom Up : {:.2?}", elapsed);
     if mode == "full"
@@ -184,7 +202,7 @@ fn benchmark(g: EdgeMapGraph, q:usize, i:usize, j:usize, mode: String)
         println!("{} : {:.2?}", name, elapsed);
     }
     let now = Instant::now();
-    directed_q::old::local_cofaces::get_q_digraph(& g, q, i, j, &flag_complex, &simplex_map);
+    directed_q::old::bottom_up::get_q_digraph(& g, q, i, j);    
     let elapsed = now.elapsed();
     println!("Bottom Up : {:.2?}", elapsed);
     if mode == "full"

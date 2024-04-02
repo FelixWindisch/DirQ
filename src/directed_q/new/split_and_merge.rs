@@ -27,7 +27,6 @@ pub fn get_q_digraph(
         ||{get_inclusion_edges( q, i, j,  flag_complex[1].len(), &flag_complex, &simplex_map)});
     //let simplex_count = flag_complex.iter().fold(0, |acc, x|{acc + x.len()});
     let mut q_graph = get_q_near_graph( q, i, j,   flag_complex[0].len(), &i_j_cofaces, &q_plus_one_inclusions);
-
     for edge in inclusion_edges
     {
         q_graph.add_edge(edge[0], edge[1]);
