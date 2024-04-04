@@ -52,18 +52,18 @@ pub fn get_all_i_j_cofaces
         {
             if simplex.len() > q+1 
             {
-            let mut i_boundary = simplex.clone();
-            i_boundary.remove(i as usize);
+                let mut i_boundary = simplex.clone();
+                i_boundary.remove(i as usize);
 
-            let mut j_boundary = simplex.clone();
-            j_boundary.remove(j as usize);
-            
-            let i_q_simplex = *simplex_map.get(&i_boundary).unwrap();
-            let j_q_simplex = *simplex_map.get(&j_boundary).unwrap();
-            let index = *simplex_map.get(simplex).unwrap();
-            result.0[i_q_simplex as usize].0.push(index);
-            result.0[j_q_simplex as usize].1.push(index);
-            result.1 += 1;
+                let mut j_boundary = simplex.clone();
+                j_boundary.remove(j as usize);
+                
+                let i_q_simplex = *simplex_map.get(&i_boundary).unwrap();
+                let j_q_simplex = *simplex_map.get(&j_boundary).unwrap();
+                let index = *simplex_map.get(simplex).unwrap();
+                result.0[i_q_simplex as usize].0.push(index);
+                result.0[j_q_simplex as usize].1.push(index);
+                result.1 += 1;
             }
         }
         result
@@ -73,7 +73,7 @@ pub fn get_all_i_j_cofaces
     {
         let mut bigger;
         let smaller;
-        if left.1 > right.1
+        if left.0.len() > right.0.len()
         {
             bigger = left.0;
             smaller = right.0;
