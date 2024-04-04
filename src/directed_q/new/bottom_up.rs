@@ -21,7 +21,7 @@ pub fn get_q_digraph(g: &EdgeMapGraph, q:usize, i:usize, j:usize) -> HashSet<(Si
             let (_, inclusions) = util::get_super_simplices_with_inclusion(g, &q_simplex);
             
             let mut q_graph_mut = result.lock().unwrap();
-            q_graph_mut.extend(inclusions);
+            //q_graph_mut.extend(inclusions);
             drop(q_graph_mut);
 
 
@@ -38,14 +38,14 @@ pub fn get_q_digraph(g: &EdgeMapGraph, q:usize, i:usize, j:usize) -> HashSet<(Si
                     let tau_inclusion = util::get_super_simplices_full(g, &tau);
                     
                     let mut q_graph_mut = result.lock().unwrap();
-                    q_graph_mut.insert((sigma, tau));    
+                    //q_graph_mut.insert((sigma, tau));    
                     for from in &sigma_inclusion
                     {
                         for to in &tau_inclusion
                         {
                             if *from != *to
                             {
-                                q_graph_mut.insert(((*from).clone(), (*to).clone()));
+                                //q_graph_mut.insert(((*from).clone(), (*to).clone()));
                             }
                         }
                     }

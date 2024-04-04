@@ -16,6 +16,8 @@ use directed_q::new::split_and_merge;
 pub use graph::{Simplex, DirectedGraph, DirectedGraphExt, DirectedGraphNew, AdjacencyMatrixGraph};
 
 
+const CHUNKSIZE:usize=1000000;
+
 #[pyfunction]
 fn compute_q_near_graph_old<'py>(py: Python<'py>, a: PyReadonlyArray2<usize>, q:usize, i:usize, j:usize) -> PyResult<&'py PyList>
 {

@@ -11,7 +11,7 @@ use itertools::Itertools;
 
 
 
-const CHUNKSIZE:usize=20000;
+const CHUNKSIZE:usize= crate::CHUNKSIZE;
 
 
 pub fn get_q_digraph(
