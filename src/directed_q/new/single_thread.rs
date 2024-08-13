@@ -5,7 +5,7 @@ use crate::graph::{Node, Simplex, Edge, DirectedGraphNew, EdgeListGraph};
 use itertools::Itertools;
 
 /// Single threaded implementation of efficient algorithm to compute the 
-/// (q, i, j)-digraph according to new definition
+/// (q, i, j)-digraph according to the new definition
 pub fn get_q_digraph
 (
     q:usize, i:usize, j:usize, 

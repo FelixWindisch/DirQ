@@ -1,20 +1,16 @@
 use crate::graph::*;
 extern crate crossbeam;
-
-
 use rayon::prelude::*;
-use std::sync::Mutex;
 use std::collections::HashMap;
 use crate::graph::{Simplex, Edge,  DirectedGraphNew, EdgeListGraph};
-
-
 use itertools::Itertools;
 
 
 
 const CHUNKSIZE:usize= crate::CHUNKSIZE;
 
-
+/// Implementation of efficient algorithm using Split-and-Merge Parallelization to compute the 
+/// (q, i, j)-digraph according to the new definition
 pub fn get_q_digraph(
     q:usize, i:usize, j:usize, 
     flag_complex: &Vec<Vec<Simplex>>, 
@@ -25,7 +21,6 @@ pub fn get_q_digraph(
     = rayon::join(
         ||{get_i_j_cofaces( q, i, j,  flag_complex[0].len(), &flag_complex[1][..], &simplex_map)},
         ||{get_inclusion_edges( q, i, j,  flag_complex[1].len(), &flag_complex, &simplex_map)});
-    //let simplex_count = flag_complex.iter().fold(0, |acc, x|{acc + x.len()});
     let mut q_graph = get_q_near_graph( q, i, j,   flag_complex[0].len(), &i_j_cofaces, &q_plus_one_inclusions);
     for edge in inclusion_edges
     {
@@ -90,7 +85,9 @@ pub fn get_i_j_cofaces
         (bigger, left.1 + right.1)
     };
 
-    q_plus_one_simplices.par_iter().chunks(CHUNKSIZE).fold( ||(vec![(Vec::new(), Vec::new()); number_q_simplices], 0), enumerate)
+    q_plus_one_simplices.par_iter()
+    .chunks(CHUNKSIZE)
+    .fold( ||(vec![(Vec::new(), Vec::new()); number_q_simplices], 0), enumerate)
     .reduce(|| (vec![(Vec::new(), Vec::new()); number_q_simplices], 0), combine).0
 }
 
@@ -104,31 +101,30 @@ pub fn get_inclusion_edges
     simplex_map: &HashMap<Simplex, Node>
 ) -> (Vec<Vec<Node>>, Vec<Edge>) 
 {
-    let enumerate = |mut result: (Vec<Vec<Node>>, Vec<Edge>), simplices: &Vec<Vec<Node>>| {
+    let enumerate = |mut result: (Vec<Vec<Node>>, Vec<Edge>), simplices: &Vec<Vec<Node>>| 
+    {
         for simplex in simplices
-        {
-
-        
-        let simplex_id = *simplex_map.get(simplex).unwrap();
-        for face_len in q as usize..simplex.len()
-        {
-            let faces : Vec<Vec<Node>> = simplex.clone().into_iter().combinations(face_len).collect();
-            for face in faces
+        {        
+            let simplex_id = *simplex_map.get(simplex).unwrap();
+            for face_len in q as usize..simplex.len()
             {
-                let face: Vec<Node> = face.into_iter().map(|x| x).collect();
-                
-                if face.len() > q as usize 
+                let faces : Vec<Vec<Node>> = simplex.clone().into_iter().combinations(face_len).collect();
+                for face in faces
                 {
-                    let face_id = *simplex_map.get(&face).unwrap();
-                    if face.len() == (q+2) as usize
+                    let face: Vec<Node> = face.into_iter().map(|x| x).collect();
+
+                    if face.len() > q as usize 
                     {
-                        result.0[(face_id - flag_complex[0].len() as Node) as usize].push(simplex_id);
+                        let face_id = *simplex_map.get(&face).unwrap();
+                        if face.len() == (q+2) as usize
+                        {
+                            result.0[(face_id - flag_complex[0].len() as Node) as usize].push(simplex_id);
+                        }
+                        result.1.push([face_id as Node, simplex_id as Node]);
                     }
-                    result.1.push([face_id as Node, simplex_id as Node]);
                 }
             }
         }
-    }
         result
     };
     
@@ -157,11 +153,15 @@ pub fn get_inclusion_edges
         (bigger_inclusion, bigger_edges)
     };
 
-    let mut result = flag_complex.into_par_iter().skip(1).chunks(CHUNKSIZE).flatten().fold(|| (vec![Vec::new(); number_q_plus_one_simplices], Vec::new()), enumerate)
+    let mut result = flag_complex.into_par_iter()
+    .skip(1)
+    .chunks(CHUNKSIZE)
+    .flatten()
+    .fold(|| (vec![Vec::new(); number_q_plus_one_simplices], Vec::new()), enumerate)
     .reduce(|| (vec![Vec::new(); number_q_plus_one_simplices], Vec::new()), combine);
     for i in 0..number_q_plus_one_simplices
     {
-        result.0[i].push(i as Node + flag_complex[0].len() as Node);
+        result.0[i].push((i  + flag_complex[0].len()) as Node);
     }   
     result
 }
@@ -178,33 +178,33 @@ pub fn get_q_near_graph
     let enumerate = |mut q_graph: EdgeListGraph, q_simplex_ids: Vec<usize>| {
         for q_simplex_id in q_simplex_ids
         {
-        let simplex_i_cofaces:&Vec<Node> = &i_j_cofaces[q_simplex_id as usize].0;
-        let simplex_j_cofaces:&Vec<Node> = &i_j_cofaces[q_simplex_id as usize].1;
+            let simplex_i_cofaces:&Vec<Node> = &i_j_cofaces[q_simplex_id as usize].0;
+            let simplex_j_cofaces:&Vec<Node> = &i_j_cofaces[q_simplex_id as usize].1;
 
-        for i_coboundary in simplex_i_cofaces
-        {
-            for j_coboundary in simplex_j_cofaces
+            for i_coboundary in simplex_i_cofaces
             {
-
-                let sigma = *i_coboundary;
-                let tau = *j_coboundary;
-                
-                let tau_inclusion = &q_plus_one_simplex_inclusions[(tau - number_q_simplices as Node) as usize];
-                let sigma_inclusion = &q_plus_one_simplex_inclusions[(sigma  - number_q_simplices as Node) as usize];
-                q_graph.add_edge(sigma, tau);    
-                for from in sigma_inclusion
+                for j_coboundary in simplex_j_cofaces
                 {
-                    for to in tau_inclusion
+
+                    let sigma = *i_coboundary;
+                    let tau = *j_coboundary;
+
+                    let tau_inclusion = &q_plus_one_simplex_inclusions[(tau - number_q_simplices as Node) as usize];
+                    let sigma_inclusion = &q_plus_one_simplex_inclusions[(sigma  - number_q_simplices as Node) as usize];
+                    q_graph.add_edge(sigma, tau);    
+                    for from in sigma_inclusion
                     {
-                        if *from != *to
+                        for to in tau_inclusion
                         {
-                            q_graph.add_edge(*from, *to);
+                            if *from != *to
+                            {
+                                q_graph.add_edge(*from, *to);
+                            }
                         }
                     }
                 }
             }
         }
-    }
         q_graph
     };
     
@@ -227,6 +227,9 @@ pub fn get_q_near_graph
             right
         }
     };
-    let q_graph = (0..number_q_simplices).into_par_iter().chunks(CHUNKSIZE).fold(|| EdgeListGraph::new_disconnected(0), enumerate).reduce(|| EdgeListGraph::new_disconnected(0), combine);
+    let q_graph = (0..number_q_simplices).into_par_iter()
+    .chunks(CHUNKSIZE)
+    .fold(|| EdgeListGraph::new_disconnected(0), enumerate)
+    .reduce(|| EdgeListGraph::new_disconnected(0), combine);
     q_graph
 }

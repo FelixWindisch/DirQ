@@ -8,10 +8,11 @@ use crate::graph::{Simplex, Edge, Node, DirectedGraphNew, EdgeListGraph};
 
 use itertools::Itertools;
 
-
+/// Implementation of efficient algorithm using Mutual Exclusion Parallelization to compute the 
+/// (q, i, j)-digraph according to the new definition
 pub fn get_q_digraph( q:usize, i:usize, j:usize, flag_complex: &Vec<Vec<Simplex>>, simplex_map: &HashMap<Simplex, Node>) -> EdgeListGraph
 {
-    // We can find the cofaces and inclusions in parallel
+    // Cofaces and inclusions can be computed in parallel
     let (i_j_cofaces, (q_plus_one_inclusions, inclusion_edges))
     = rayon::join(
         ||{get_i_j_cofaces( q, i, j,  flag_complex[0].len(), &flag_complex[1][..], &simplex_map)},
@@ -79,7 +80,7 @@ pub fn get_inclusion_edges
             let faces : Vec<Vec<Node>> = simplex.clone().into_iter().combinations(face_len).collect();
             for face in faces
             {
-                //This is silly. Roll your own combinations() for Node?
+                //TODO: This is silly. Roll your own combinations() for Node?
                 let face: Vec<Node> = face.into_iter().map(|x| x).collect();
                 
                 if face.len() > q as usize 
@@ -132,9 +133,6 @@ pub fn get_q_near_graph
                 
                 let tau_inclusion = &q_plus_one_simplex_inclusions[(tau - number_q_simplices as Node) as usize];
                 let sigma_inclusion = &q_plus_one_simplex_inclusions[(sigma  - number_q_simplices as Node) as usize];
-                    
-                
-                
                 
                 let mut q_graph_guard = q_graph.lock().unwrap();
                 q_graph_guard.add_edge(sigma, tau);    

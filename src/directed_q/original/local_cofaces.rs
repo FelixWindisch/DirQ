@@ -1,3 +1,4 @@
+
 use rayon::prelude::*;
 use std::sync::Mutex;
 use std::collections::HashMap;
@@ -7,11 +8,6 @@ use crate::util;
 
 
 
-
-
-
-/// Hybrid implementation of the efficient and bottom-up algorithm using mutual exclusion parallelization to compute the 
-/// (q, i, j)-digraph according to new definition
 pub fn get_q_digraph
 (
     g: &EdgeMapGraph, 
@@ -26,23 +22,27 @@ pub fn get_q_digraph
     let q_graph = Mutex::new(EdgeListGraph::new_disconnected(0));
 
     let _enumerate = |q_simplex: Vec<Node>| {
-        let simplex_i_cofaces:Vec<Node> = util::local_cofaces(g, &q_simplex,  i as usize, simplex_map);
-        let simplex_j_cofaces:Vec<Node> = util::local_cofaces(g, &q_simplex,  j as usize, simplex_map);
-        for i_coface in simplex_i_cofaces
-        {
-            for j_coface in &simplex_j_cofaces
-            {
-                let sigma = i_coface;
-                let tau = *j_coface;
-                
-                let sigma_inclusion = util::get_super_simplices(g, &simplicial_family[sigma as usize], simplex_map, &simplicial_family);
-                let tau_inclusion = util::get_super_simplices(g, &simplicial_family[tau as usize], simplex_map, &simplicial_family);
+        let simplex_inclusion = util::get_super_simplices(g, &q_simplex, simplex_map, &simplicial_family);
  
+        for s in &simplex_inclusion
+        {
+            for t in &simplex_inclusion
+            {
+                //if *s == *t
+                //{
+                //    continue;
+                //}
+                let sigma = *s;
+                let tau = *t;
+                
+                let sigma_i_cofaces:Vec<Node> = util::local_cofaces(g, simplicial_family.get(sigma as usize).unwrap(),  i as usize, simplex_map);
+                let tau_j_cofaces:Vec<Node> = util::local_cofaces(g, simplicial_family.get(tau as usize).unwrap(),  j as usize, simplex_map);
+        
                 let mut q_graph_mut = q_graph.lock().unwrap();
-                q_graph_mut.add_edge(sigma, tau);    
-                for from in sigma_inclusion
+                //q_graph_mut.add_edge(sigma, tau);    
+                for from in sigma_i_cofaces
                 {
-                    for to in &tau_inclusion
+                    for to in &tau_j_cofaces
                     {
                         if from != *to
                         {
@@ -57,6 +57,8 @@ pub fn get_q_digraph
     
     flag_complex[0].clone().into_par_iter().for_each(_enumerate);
     let q_graph = q_graph.lock().unwrap().to_owned();
+
     dbg!(q_graph.edges().len());
-    q_graph
+    EdgeListGraph::new_disconnected(0)
+    //q_graph
 }

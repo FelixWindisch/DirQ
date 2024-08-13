@@ -1,19 +1,18 @@
 use crate::graph::*;
-
 use rayon::prelude::*;
 use std::collections::HashMap;
 use crate::graph::{Node, Edge};
 use std::cmp::max;
-
 use itertools::enumerate;
-// This is a translation of parts from the "flagser" C++ code of Daniel Lütgehetmann.
+
+// This is a translation of parts from the "flagser" C++ code of Daniel Lütgehetmann by Jonathan Krebs.
 // Published as "Computing Persistent Homology of Directed Flag Complexes" https://doi.org/10.3390/a13010019
 // https://github.com/luetge/flagser/blob/master/include/complex/directed_flag_complex.h
 
 
 // Returns the directed flag complex of G as a Vec<Vec<Vec<Node>>>,
 // as well as a Hashmap of simplices to indices and i/j-cofaces for all q-simplices
-pub fn get_directed_flag_complex<G: DirectedGraph + Sync + ?Sized>(graph: &G, _i:usize, _j:usize, q:usize) -> Vec<Vec<Vec<Node>>> {
+pub fn get_directed_flag_complex<G: DirectedGraph + Sync + ?Sized>(graph: &G, _i:usize, _j:usize, q:usize, max_dimension:usize) -> Vec<Vec<Vec<Node>>> {
     
     let enumerate = |result: &mut Vec<Vec<Simplex>>, simplex: &[Node]| {
         // Should this closure be declared outside?
@@ -52,12 +51,11 @@ pub fn get_directed_flag_complex<G: DirectedGraph + Sync + ?Sized>(graph: &G, _i
         flag_complex_l
     };
 
-    crate::complex::for_each_cell_par(graph, &enumerate, 0, graph.nnodes()).reduce(||{Vec::new()}, &combine)
+    crate::complex::for_each_cell_par(graph, &enumerate, 0, max_dimension).reduce(||{Vec::new()}, &combine)
 }
 
-pub fn get_simplex_map(flag_complex: &Vec<Vec<Simplex>>, q:usize) -> HashMap<Simplex, Node>
+pub fn get_simplex_map(flag_complex: &Vec<Vec<Simplex>>, _q:usize) -> HashMap<Simplex, Node>
 {
-    //.filter(|simplex: &Vec<Node>|{simplex.len() > q as usize})
     let simplicial_family: Vec<Vec<Node>> = flag_complex.clone().into_iter().flatten().collect();
     let mut simplex_map : HashMap<Simplex, Node> = HashMap::new();
     for (index, simplex) in enumerate(&simplicial_family)
@@ -78,7 +76,6 @@ pub fn enumerate_cells_with_q_nearness<G: DirectedGraph + Sync + ?Sized>(graph: 
     let mut n_simplices = 0;
     
     let mut enumerate = |simplex: &[Node]| {
-        // Should this closure be declared outside?
         let mut get_index_or_add_simplex = |x: Vec<Node>|
         {
             if simplex_map.contains_key(&x)
@@ -205,8 +202,6 @@ pub fn enumerate_cells_with_q_nearness_par<G: DirectedGraph + Sync + ?Sized>(gra
     };
 
     for_each_cell_par(graph, &enumerate, 0, graph.nnodes()).reduce(||{(Vec::new(), HashMap::new(), Vec::new())}, &combine)
-    //(Vec::new(), HashMap::new(), Vec::new())
-
 }
 
 

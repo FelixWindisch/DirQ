@@ -332,9 +332,9 @@ impl DirectedGraph for EdgeMapGraph {
         if self.has_edge(from, to) && self.has_edge(to, from) {
             let big = max(from, to);
             let small = min(from, to);
-            self.double_edges.remove(&[big, small]); // does nothing if it does not exist
+            self.double_edges.shift_remove(&[big, small]); // does nothing if it does not exist
         }
-        self.edges.remove(&[from, to]);
+        self.edges.shift_remove(&[from, to]);
 
         //  update bits
         let toh = to as usize / CHUNK_SIZE;
@@ -398,7 +398,7 @@ impl DirectedGraph for EdgeListGraph
         self.edges.insert([from, to]);
     }
     fn remove_edge(&mut self, from: Node, to: Node){
-        self.edges.remove(&[from, to]);
+        self.edges.shift_remove(&[from, to]);
     }
 
     // FIXME: API ändern, dass nicht kopiert werden muss

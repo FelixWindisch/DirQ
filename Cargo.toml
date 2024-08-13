@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "dir_q_lib"
+name = "dir_q"
 path = "src/lib.rs"
 
 [dependencies]
@@ -22,6 +22,9 @@ bitvec = "1"
 array_tool = {version = "1.0.3"}
 itertools = {version = "0.12.1"}
 clap = { version = "3.0.8", features = ["derive"] }
+eframe = "=0.22.0"
+tinyfiledialogs = "3.9.1"
+
 
 
 [profile.release]
