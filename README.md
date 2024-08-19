@@ -3,7 +3,7 @@ DirQ is a Rust crate that computes directed (q, i, j)-graphs efficiently. For mo
 ## Building from source
 The crate has been developed for Rust and cargo version 1.68.2. Running `cargo build --release` at the project root will generate an executable in target/release.
 ## Running the executable
-After building from source or finding the prebuilt binary in the builds directory, executing it in the command line will start the GUI. 
+After building from source, executing the executable in the command line will start the GUI. 
 Alternatively, the command line interface can be used by passing the following arguments to the executable:
 | Argument   |      Meaning  | Possible Values    |  Default |
 |------------|:-------------:|-------------------:|----------|
