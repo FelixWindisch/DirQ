@@ -1,0 +1,16 @@
+[project]
+name = "directed_q"
+dynamic = ["version"]
+version = "0.9"
+authors = [
+  {name = "Felix Windisch", email = "felix.windisch@tugraz.at"},
+  {name = "Florian Unger"},
+  {name = "Jonathan Krebs"}
+]
+maintainers = [
+  {name = "Felix Windisch", email = "felix.windisch@tugraz.at"}
+]
+
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
