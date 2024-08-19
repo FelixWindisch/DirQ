@@ -1,5 +1,5 @@
 # DirQ: Fast Directed Q Nearness
-DirQ is a Rust crate that computes directed (q, i, j)-graphs efficiently. For more information about directed Q-analysis, refer to https://arxiv.org/abs/2202.07307 or my Master's Thesis "A Novel Definition of Directed q-nearness :  Comparative Analysis and Algorithms" (soon to be published).
+DirQ is a Rust crate that computes directed (q, i, j)-graphs efficiently. For more information about directed Q-analysis, refer to https://arxiv.org/abs/2202.07307 or my Master's Thesis "A Novel Definition of Directed q-nearness :  Comparative Analysis and Algorithms" (soon to be published). The program is built on the excellent Rust implementation of https://github.com/luetge/flagser developed for https://www.sciencedirect.com/science/article/pii/S0925772122000840. 
 ## Building from source
 The crate has been developed for Rust and cargo version 1.68.2. Running `cargo build --release` at the project root will generate an executable in target/release.
 ## Running the executable
